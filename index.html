@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <!-- Tối ưu cho mobile: ngăn user-scale để thao tác chạm mượt hơn -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mô Phỏng Liên Kết Hydrogen - Hóa Học ABC</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body>
+    <!-- Container chính để chứa cả sidebar và canvas -->
+    <div id="main-container">
+        <!-- Canvas Container sẽ được p5.js vẽ vào đây -->
+        <div id="canvas-container"></div>
+
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <h1 id="appTitle" 
+                    data-i18n="title"
+                    data-vi="MÔ PHỎNG LK HYDROGEN"
+                    data-en="H-BOND SIMULATION">
+                    MÔ PHỎNG LK HYDROGEN
+                </h1>
+                <h2 class="brand">HÓA HỌC ABC</h2>
+            </div>
+            
+            <div class="control-panel">
+                <div class="control-group">
+                    <select id="langSelect">
+                        <option value="vi" selected>Tiếng Việt</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="moleculeCount" id="lblCount"
+                        data-i18n="lblCount"
+                        data-vi="Số lượng H₂O (0-50)"
+                        data-en="H₂O Count (0-50)">
+                        Số lượng H₂O (0-50)
+                    </label>
+                    <input type="number" id="moleculeCount" value="0" min="0" max="50">
+                </div>
+
+                <div class="control-group">
+                    <label for="speedSlider" id="lblSpeed"
+                        data-i18n="lblSpeed"
+                        data-vi="Tốc độ"
+                        data-en="Speed">
+                        Tốc độ
+                    </label>
+                    <input type="range" id="speedSlider" min="0" max="5" step="0.1" value="1.5">
+                </div>
+
+                <div class="control-group">
+                    <label id="lblColor"
+                        data-i18n="lblColor"
+                        data-vi="Màu liên kết"
+                        data-en="Bond Color">
+                        Màu liên kết
+                    </label>
+                    <div class="color-palette" id="colorPalette">
+                        <button class="color-btn active" data-color="cyan" style="background-color: #00FFFF;" title="Cyan"></button>
+                        <button class="color-btn" data-color="yellow" style="background-color: #FFFF00;" title="Yellow"></button>
+                        <button class="color-btn" data-color="magenta" style="background-color: #FF00FF;" title="Magenta"></button>
+                        <button class="color-btn" data-color="lime" style="background-color: #32FF32;" title="Lime"></button>
+                        <button class="color-btn" data-color="orange" style="background-color: #FFA500;" title="Orange"></button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <button id="toggleLabelsBtn" class="toggle-btn"
+                        data-i18n="btnToggleLabels"
+                        data-vi-off="Bật nhãn nguyên tử"
+                        data-vi-on="Tắt nhãn nguyên tử"
+                        data-en-off="Show Atom Labels"
+                        data-en-on="Hide Atom Labels">
+                        Bật nhãn nguyên tử
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="sketch.js"></script>
+</body>
+</html>
