@@ -13,7 +13,7 @@ body {
     padding: 0;
     width: 100%;
     height: 100vh;
-    overflow: hidden; /* Ngăn cuộn trang tổng thể */
+    overflow: hidden;
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background-color: #000;
 }
@@ -22,17 +22,15 @@ body {
     display: flex;
     width: 100%;
     height: 100%;
+    position: relative; /* Quan trọng cho absolute positioning con */
 }
 
-/* --- CANVAS STYLES --- */
+/* --- CANVAS --- */
 #canvas-container {
     flex-grow: 1;
     position: relative;
     background-color: #000;
-    /* QUAN TRỌNG: touch-action: none giúp ngăn trình duyệt cuộn trang
-       khi người dùng vuốt ngón tay trên canvas để xoay 3D */
     touch-action: none;
-    order: 1; /* Mặc định canvas nằm bên phải (hoặc sau sidebar tùy html flow) */
 }
 
 canvas {
@@ -40,21 +38,21 @@ canvas {
     outline: none;
 }
 
-/* --- SIDEBAR STYLES --- */
+/* --- SIDEBAR (Desktop Default) --- */
 #sidebar {
     width: var(--sidebar-width);
     background: linear-gradient(135deg, var(--sidebar-bg), #141418);
     color: var(--text-color);
     padding: 20px;
     box-shadow: 4px 0 15px rgba(0,0,0,0.6);
-    z-index: 100;
+    z-index: 200; /* Cao hơn canvas */
     display: flex;
     flex-direction: column;
     gap: 20px;
     border-right: 1px solid #333;
-    overflow-y: auto; /* Cho phép cuộn d��c sidebar nếu nội dung dài */
+    overflow-y: auto;
     box-sizing: border-box;
-    order: 0; /* Sidebar bên trái trên Desktop */
+    transition: transform 0.3s ease-in-out; /* Hiệu ứng trượt */
 }
 
 .sidebar-header {
@@ -63,6 +61,7 @@ canvas {
     padding-bottom: 10px;
     margin-bottom: 5px;
     flex-shrink: 0;
+    position: relative;
 }
 
 #appTitle {
@@ -82,6 +81,42 @@ canvas {
     letter-spacing: 2px;
 }
 
+/* --- BUTTONS --- */
+/* Nút Menu Mobile (Mặc định ẩn trên Desktop) */
+#mobile-menu-btn {
+    display: none; 
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 150; /* Nằm trên canvas nhưng dưới sidebar khi mở */
+    background-color: rgba(30, 30, 36, 0.8);
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    padding: 0;
+    line-height: 1;
+}
+
+/* Nút Đóng Sidebar (Mặc định ẩn trên Desktop) */
+#close-sidebar-btn {
+    display: none;
+    position: absolute;
+    top: -10px;
+    right: 0;
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+/* --- CONTROLS --- */
 .control-panel {
     display: flex;
     flex-direction: column;
@@ -94,11 +129,7 @@ canvas {
     gap: 6px;
 }
 
-label {
-    font-size: 0.9em;
-    font-weight: 500;
-    color: #ccc;
-}
+label { font-size: 0.9em; font-weight: 500; color: #ccc; }
 
 select, input[type="number"] {
     padding: 10px;
@@ -112,128 +143,80 @@ select, input[type="number"] {
     box-sizing: border-box;
 }
 
-/* Color Palette Styles */
+/* Color Palette */
 .color-palette {
     display: flex;
     gap: 8px;
-    justify-content: space-between; /* Giãn đều các nút màu */
+    justify-content: space-between;
     padding: 5px 0;
 }
 
 .color-btn {
-    width: 36px; /* Nút to hơn cho dễ chạm trên mobile */
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     border: 2px solid transparent;
     cursor: pointer;
     transition: transform 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
-
-.color-btn:hover, .color-btn:active {
-    transform: scale(1.1);
-}
-
 .color-btn.active {
     border-color: #fff;
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
     transform: scale(1.15);
 }
 
-/* Button Styles */
 button.toggle-btn {
-    padding: 12px; /* Padding lớn hơn cho cảm ứng */
+    padding: 12px;
     background-color: var(--btn-color);
     color: white;
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.95em;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+button.toggle-btn.active { background-color: #2a9d8f; }
+
+/* Overlay nền mờ khi mở menu */
+#sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 190;
+    backdrop-filter: blur(2px);
 }
 
-button.toggle-btn.active {
-    background-color: #2a9d8f; 
-}
-
-/* Slider */
-input[type=range] {
-    -webkit-appearance: none;
-    width: 100%;
-    background: transparent;
-    height: 24px; /* Tăng chiều cao vùng chạm */
-    margin: 0;
-}
-
-input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    height: 20px; /* Thumb to hơn */
-    width: 20px;
-    border-radius: 50%;
-    background: var(--accent-color);
-    cursor: pointer;
-    margin-top: -8px;
-    box-shadow: 0 0 5px rgba(76, 201, 240, 0.5);
-}
-
-input[type=range]::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 4px;
-    cursor: pointer;
-    background: #444;
-    border-radius: 2px;
-}
-
-/* --- MOBILE OPTIMIZATION --- */
+/* --- MOBILE RESPONSIVE --- */
 @media (max-width: 768px) {
-    #main-container {
-        flex-direction: column; /* Chuyển sang bố cục dọc */
-    }
-
-    #canvas-container {
-        order: 0; /* Canvas lên đầu */
-        height: 60vh; /* Chiếm 60% màn hình */
-        width: 100%;
-        flex-grow: 0;
+    #mobile-menu-btn {
+        display: block; /* Hiện nút Menu */
     }
 
     #sidebar {
-        order: 1; /* Sidebar xuống dưới */
+        position: absolute; /* Sidebar trượt lên trên */
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 280px; /* Width cố định trên mobile */
+        max-width: 80%;
+        transform: translateX(-100%); /* Ẩn sang trái */
+        border-right: 1px solid #444;
+    }
+
+    #sidebar.active {
+        transform: translateX(0); /* Trượt ra */
+    }
+
+    #close-sidebar-btn {
+        display: block; /* Hiện nút đóng */
+    }
+
+    #sidebar-overlay.active {
+        display: block; /* Hiện lớp phủ */
+    }
+
+    #canvas-container {
         width: 100%;
-        height: 40vh; /* Chiếm 40% màn hình */
-        border-right: none;
-        border-top: 2px solid #333;
-        padding: 15px;
-        gap: 10px;
-    }
-
-    .sidebar-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #444;
-        padding-bottom: 5px;
-    }
-
-    .sidebar-header h1 {
-        font-size: 0.9em;
-    }
-    .sidebar-header h2 {
-        display: none; /* Ẩn brand name phụ để tiết kiệm chỗ */
-    }
-
-    /* Grid layout cho controls trên mobile để tiết kiệm diện tích dọc */
-    .control-panel {
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* 2 cột */
-        gap: 12px;
-    }
-
-    /* Các phần tử chiếm toàn bộ chiều ngang trong grid */
-    .control-group:nth-child(3), /* Speed slider */
-    .control-group:nth-child(4), /* Color palette */
-    .control-group:nth-child(5) { /* Button */
-        grid-column: span 2;
+        height: 100%;
     }
 }

@@ -2,20 +2,22 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <!-- Tối ưu cho mobile: ngăn user-scale để thao tác chạm mượt hơn -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mô Phỏng Liên Kết Hydrogen - Hóa Học ABC</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
 </head>
 <body>
-    <!-- Container chính để chứa cả sidebar và canvas -->
     <div id="main-container">
-        <!-- Canvas Container sẽ được p5.js vẽ vào đây -->
+        <!-- Nút Menu chỉ hiện trên Mobile -->
+        <button id="mobile-menu-btn">☰</button>
+
         <div id="canvas-container"></div>
 
         <div id="sidebar">
             <div class="sidebar-header">
+                <!-- Nút Đóng chỉ hiện trên Mobile -->
+                <button id="close-sidebar-btn">✕</button>
                 <h1 id="appTitle" 
                     data-i18n="title"
                     data-vi="MÔ PHỎNG LK HYDROGEN"
@@ -81,6 +83,8 @@
                 </div>
             </div>
         </div>
+        <!-- Lớp phủ mờ khi mở sidebar trên mobile -->
+        <div id="sidebar-overlay"></div>
     </div>
 
     <script src="sketch.js"></script>

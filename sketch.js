@@ -16,6 +16,9 @@ let maxSpeed = 1.5;
 // Sidebar width definition for Desktop only
 const DESKTOP_SIDEBAR_WIDTH = 260; 
 
+// [THAY ĐỔI] Độ dày nét vẽ cố định là 1 cho mọi thiết bị
+let bondThickness = 1;
+
 // Color Palette
 const BOND_COLORS = {
     cyan:   [0, 255, 255],
@@ -35,21 +38,20 @@ function preload() {
 }
 
 function setup() {
-    // [QUAN TRỌNG CHO MOBILE]
-    // Màn hình điện thoại thường có pixelDensity cao (2.0, 3.0).
-    // WebGL sẽ render rất nặng nếu không ép về 1.0.
-    pixelDensity(1);
+    pixelDensity(1); 
 
     // Tính toán kích thước canvas ban đầu
     let cW, cH;
     if (windowWidth <= 768) {
-        // Mobile layout: Canvas full width, height = 60vh (ước lượng)
+        // Mobile
         cW = windowWidth;
-        cH = windowHeight * 0.6;
+        cH = windowHeight;
+        // bondThickness = 1; // Đã set mặc định ở trên
     } else {
-        // Desktop layout
+        // Desktop
         cW = windowWidth - DESKTOP_SIDEBAR_WIDTH;
         cH = windowHeight;
+        // bondThickness = 1; // Đã set mặc định ở trên
     }
 
     let canvas = createCanvas(cW, cH, WEBGL);
@@ -61,6 +63,28 @@ function setup() {
     textFont(myFont);
     adjustCamera();
     setupUI();
+    setupMobileMenu(); 
+}
+
+function setupMobileMenu() {
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const closeBtn = document.getElementById('close-sidebar-btn');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    function openMenu() {
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
+    }
+
+    function closeMenu() {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+    }
+
+    menuBtn.addEventListener('click', openMenu);
+    closeBtn.addEventListener('click', closeMenu);
+    overlay.addEventListener('click', closeMenu);
 }
 
 function setupUI() {
@@ -90,9 +114,7 @@ function setupUI() {
 
     colorBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Dừng sự kiện lan truyền để tránh click nhầm
             e.stopPropagation();
-            
             colorBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             const colorKey = btn.getAttribute('data-color');
@@ -165,16 +187,16 @@ function updateToggleBtnText() {
 function windowResized() {
     let cW, cH;
     
-    // [TỐI ƯU MOBILE] Tính toán lại kích thước khi xoay màn hình hoặc resize
     if (windowWidth <= 768) {
-        // Mobile: Sidebar đẩy xuống dưới, Canvas chiếm 60%
+        // Mobile
         cW = windowWidth;
-        cH = windowHeight * 0.6;
+        cH = windowHeight;
     } else {
-        // Desktop: Sidebar bên trái
+        // Desktop
         cW = windowWidth - DESKTOP_SIDEBAR_WIDTH;
         cH = windowHeight;
     }
+    // bondThickness luôn là 1, không cần đổi lại ở đây
     
     resizeCanvas(cW, cH);
     adjustCamera();
@@ -456,7 +478,7 @@ function drawFineDashedLineSurface(centerH, centerO, alphaVal, colorRGB) {
         if (currentLocalDist + actualDashLen > drawDist) actualDashLen = drawDist - currentLocalDist;
         let p1 = p5.Vector.add(startPoint, p5.Vector.mult(dir, currentLocalDist));
         let p2 = p5.Vector.add(startPoint, p5.Vector.mult(dir, currentLocalDist + actualDashLen));
-        drawCylinderBetweenPoints(p1, p2, 0.4);
+        drawCylinderBetweenPoints(p1, p2, bondThickness);
     }
     pop();
 }
