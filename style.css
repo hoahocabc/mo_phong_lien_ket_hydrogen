@@ -56,7 +56,7 @@ body {
 }
 canvas { display: block; outline: none; }
 
-/* --- STOP BUTTON (FLOATING) - CẬP NHẬT: Nhỏ hơn, không viết hoa --- */
+/* --- STOP BUTTON (FLOATING) --- */
 .floating-btn {
     position: absolute;
     top: 20px;
@@ -65,11 +65,9 @@ canvas { display: block; outline: none; }
     background-color: #ef233c;
     color: white;
     border: 2px solid rgba(255,255,255,0.2);
-    /* Giảm padding và font-size để nhỏ gọn */
     padding: 8px 16px;
     font-size: 14px;
     font-weight: 600;
-    /* Bỏ text-transform uppercase */
     text-transform: none; 
     cursor: pointer;
     border-radius: 50px;
@@ -125,17 +123,96 @@ input[type=range]::-webkit-slider-runnable-track {
     width: 100%; height: 4px; cursor: pointer; background: #555; border-radius: 2px;
 }
 
+/* Updated: Removed text-transform: uppercase */
 button.toggle-btn {
     padding: 14px; background-color: var(--btn-color); color: white;
     border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
-    transition: background 0.2s; text-transform: uppercase; font-size: 0.9em;
+    transition: background 0.2s; font-size: 0.9em;
+    text-transform: none; /* Changed from uppercase to none */
 }
 button.toggle-btn.active { background-color: #2a9d8f; }
+
+/* New: Ghost Button Style for Help */
+.ghost-btn {
+    background: transparent;
+    border: none;
+    color: #bbb;
+    font-size: 0.9em;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 5px;
+    align-self: flex-start;
+    transition: color 0.2s;
+}
+.ghost-btn:hover {
+    color: var(--accent-color);
+}
 
 #sidebar-overlay {
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.7); z-index: 190; backdrop-filter: blur(3px);
     opacity: 0; transition: opacity 0.3s;
+}
+
+/* --- MODAL POPUP STYLES --- */
+.modal-overlay-custom {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+}
+
+.modal-overlay-custom.active {
+    display: flex;
+}
+
+.modal-content {
+    background: #1e1e24;
+    color: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    border: 1px solid #444;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+
+.close-modal-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-modal-btn:hover {
+    color: #ff5555;
+}
+
+.modal-body ul {
+    padding-left: 20px;
+    line-height: 1.6;
+}
+
+.modal-body li {
+    margin-bottom: 10px;
+}
+
+.modal-body code {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    color: #ffd166;
 }
 
 /* --- RESPONSIVE MEDIA QUERIES --- */
@@ -156,7 +233,6 @@ button.toggle-btn.active { background-color: #2a9d8f; }
     
     #canvas-container { width: 100%; height: 100%; }
     
-    /* Điều chỉnh nút Stop trên mobile */
     .floating-btn {
         top: 15px;
         right: 15px;

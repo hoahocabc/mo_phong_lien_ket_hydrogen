@@ -18,7 +18,11 @@ const DESKTOP_SIDEBAR_WIDTH = 280;
 // Physics Constants
 const BOND_STRENGTH = 0.003; 
 const H_BOND_DISTANCE = 90; 
-const MAX_MOLECULES = 100;
+
+// Cập nhật số lượng max động
+function getMaxMolecules() {
+    return currentMoleculeType === 'C2H5OH' ? 70 : 200;
+}
 
 // --- CẤU HÌNH HÌNH HỌC CƠ BẢN ---
 const TETRA_VECS = [
@@ -146,6 +150,7 @@ function setup() {
     adjustCamera();
     setupUI();
     setupMobileMenu(); 
+    setupHelpModal(); 
 }
 
 function calculateCanvasSize() {
@@ -172,16 +177,73 @@ function setupMobileMenu() {
     overlay.addEventListener('click', closeMenu);
 }
 
+function setupHelpModal() {
+    const helpBtn = document.getElementById('helpBtn');
+    const closeHelpBtn = document.getElementById('closeHelpBtn');
+    const helpModal = document.getElementById('helpModal');
+
+    const setMouseOverTrue = () => { isMouseOverUI = true; };
+    const setMouseOverFalse = () => { isMouseOverUI = false; };
+    
+    helpModal.addEventListener('mouseenter', setMouseOverTrue);
+    helpModal.addEventListener('mouseleave', setMouseOverFalse);
+
+    function openModal() {
+        helpModal.classList.add('active');
+        isMouseOverUI = true; 
+    }
+    function closeModal() {
+        helpModal.classList.remove('active');
+        isMouseOverUI = false;
+    }
+
+    if(helpBtn) helpBtn.addEventListener('click', openModal);
+    if(closeHelpBtn) closeHelpBtn.addEventListener('click', closeModal);
+}
+
+function getHelpContent(lang) {
+    if (lang === 'vi') {
+        return `
+            <ul>
+                <li><strong>Xoay camera:</strong> Bấm giữ chuột trái và kéo.</li>
+                <li><strong>Phóng to/nhỏ:</strong> Lăn chuột giữa.</li>
+                <li><strong>Điều khiển:</strong> Sử dụng thanh menu bên trái để chọn chất, số lượng và tốc độ.</li>
+                <li><strong>Giới hạn:</strong> Tối đa 70 phân tử cho Ethanol (C₂H₅OH) và 200 cho các trường hợp khác.</li>
+                <li><strong>Stop/Resume:</strong> Dùng nút góc phải để dừng hoặc tiếp tục chuyển động.</li>
+            </ul>
+        `;
+    } else {
+        return `
+            <ul>
+                <li><strong>Rotate Camera:</strong> Left Click + Drag.</li>
+                <li><strong>Zoom:</strong> Mouse Scroll.</li>
+                <li><strong>Controls:</strong> Use the sidebar to change molecule type, count, and speed.</li>
+                <li><strong>Max Count:</strong> Up to 70 molecules for Ethanol (C₂H₅OH) and 200 for others.</li>
+                <li><strong>Stop/Resume:</strong> Use the floating button on the right.</li>
+            </ul>
+        `;
+    }
+}
+
+function updateMoleculeCountLabel(maxVal) {
+    const lbl = document.getElementById('lblCount');
+    if (currentLang === 'vi') {
+        lbl.innerText = `Số phân tử (Tối đa: ${maxVal})`;
+    } else {
+        lbl.innerText = `Molecule Count (Max: ${maxVal})`;
+    }
+    lbl.setAttribute('data-vi', `Số phân tử (Tối đa: ${maxVal})`);
+    lbl.setAttribute('data-en', `Molecule Count (Max: ${maxVal})`);
+}
+
 function setupUI() {
     const countInput = document.getElementById('moleculeCount');
     const labelBtn = document.getElementById('toggleLabelsBtn');
     const langSelect = document.getElementById('langSelect');
     const speedSlider = document.getElementById('speedSlider');
     const typeSelect = document.getElementById('moleculeType');
-    
+    const helpBtn = document.getElementById('helpBtn'); 
     const stopBtn = document.getElementById('stopBtn');
-
-    // Xử lý sự kiện chuột trên Sidebar để tắt orbitControl
     const sidebar = document.getElementById('sidebar');
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 
@@ -199,8 +261,12 @@ function setupUI() {
         mobileMenuBtn.addEventListener('mouseenter', setMouseOverTrue);
         mobileMenuBtn.addEventListener('mouseleave', setMouseOverFalse);
     }
+
+    if (helpBtn) {
+        helpBtn.addEventListener('mouseenter', setMouseOverTrue);
+        helpBtn.addEventListener('mouseleave', setMouseOverFalse);
+    }
     
-    // Sự kiện cho nút Stop
     if (stopBtn) {
         stopBtn.addEventListener('mouseenter', setMouseOverTrue);
         stopBtn.addEventListener('mouseleave', setMouseOverFalse);
@@ -211,25 +277,38 @@ function setupUI() {
     }
 
     updateInterfaceLanguage();
-    updateStopButtonVisuals(); // Khởi tạo nút Stop
+    updateStopButtonVisuals(); 
 
     langSelect.addEventListener('change', (e) => {
         currentLang = e.target.value;
         updateInterfaceLanguage();
-        // Không cần updateStopButtonVisuals() ở đây vì nút Stop luôn là tiếng Anh
     });
 
     typeSelect.addEventListener('change', (e) => {
         currentMoleculeType = e.target.value;
+        let currentMax = getMaxMolecules();
+        countInput.max = currentMax;
+
         let currentCount = parseInt(countInput.value);
+        if (currentCount > currentMax) {
+            currentCount = currentMax;
+            countInput.value = currentMax;
+        }
+
         molecules = [];
+        updateMoleculeCountLabel(currentMax);
         updateMoleculeCount(currentCount);
     });
 
     countInput.addEventListener('input', (e) => {
         let val = parseInt(e.target.value);
+        let currentMax = getMaxMolecules();
+        
         if (isNaN(val) || val < 0) val = 0;
-        if (val > MAX_MOLECULES) val = MAX_MOLECULES; 
+        if (val > currentMax) val = currentMax; 
+        
+        if (e.target.value > currentMax) e.target.value = currentMax;
+        
         updateMoleculeCount(val);
     });
 
@@ -245,19 +324,16 @@ function setupUI() {
     });
 }
 
-// CẬP NHẬT: Hàm hiển thị nút Stop (Luôn tiếng Anh, không viết hoa toàn bộ)
 function updateStopButtonVisuals() {
     const btn = document.getElementById('stopBtn');
     if (!btn) return;
 
     if (isPaused) {
         btn.classList.add('paused');
-        // Màu xanh, chữ Resume
         btn.innerText = 'Resume';
         btn.style.backgroundColor = '#2a9d8f'; 
     } else {
         btn.classList.remove('paused');
-        // Màu đỏ, chữ Stop
         btn.innerText = 'Stop';
         btn.style.backgroundColor = '#ef233c';
     }
@@ -308,7 +384,7 @@ function createSafeMolecule(id) {
 function updateInterfaceLanguage() {
     const elements = document.querySelectorAll('[data-i18n]');
     elements.forEach(el => {
-        if (el.id === 'toggleLabelsBtn') return; 
+        if (el.id === 'toggleLabelsBtn' || el.id === 'lblCount') return; 
         const text = el.getAttribute(`data-${currentLang}`);
         if (text) el.innerText = text;
     });
@@ -326,6 +402,10 @@ function updateInterfaceLanguage() {
     }
 
     updateToggleBtnText();
+    updateMoleculeCountLabel(getMaxMolecules());
+    
+    const helpBody = document.getElementById('helpBody');
+    if (helpBody) helpBody.innerHTML = getHelpContent(currentLang);
 }
 
 function updateToggleBtnText() {
@@ -355,11 +435,13 @@ function draw() {
     let sidebar = document.getElementById('sidebar');
     let isSidebarActive = sidebar && sidebar.classList.contains('active');
     
+    // Nếu KHÔNG chạm vào UI: Xoay (Orbit)
     if (!isSidebarActive && !isMouseOverUI) {
         orbitControl();
     }
 
     push();
+
     noFill(); stroke(80); strokeWeight(1);
     box(boxSize * 2);
 
@@ -374,8 +456,6 @@ function draw() {
         m.checkEdges(); 
     }
     
-    // Nếu đang Pause, vẫn tính toán va chạm và liên kết (nhưng không áp dụng lực di chuyển)
-    // để giữ hình ảnh tĩnh nhưng đúng vật lý
     solveDetailedCollisions();
     processAndDrawBonds();
 
@@ -388,7 +468,7 @@ function draw() {
 // --- PHYSICS & BOND LOGIC ---
 
 function solveDetailedCollisions() {
-    if (isPaused) return; // Dừng check va chạm khi pause để ổn định hình ảnh
+    if (isPaused) return; 
 
     let iterations = 5; 
     
@@ -545,7 +625,6 @@ function applyBondPhysicsAndVisuals(bond) {
     
     drawFineDashedLineSurface(bond.posH, bond.posCenter, alpha, [255, 255, 0]);
 
-    // Nếu đang Pause, không áp dụng lực hút
     if (isPaused) return;
 
     let force = p5.Vector.sub(bond.posCenter, bond.posH).normalize();

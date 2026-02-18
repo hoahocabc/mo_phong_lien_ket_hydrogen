@@ -72,11 +72,11 @@
                 <div class="control-group">
                     <label for="moleculeCount" id="lblCount"
                         data-i18n="lblCount"
-                        data-vi="Số phân tử (0-100)"
-                        data-en="Molecule Count (0-100)">
-                        Số phân tử (0-100)
+                        data-vi="Số phân tử (Tối đa: 200)"
+                        data-en="Molecule Count (Max: 200)">
+                        Số phân tử (Tối đa: 200)
                     </label>
-                    <input type="number" id="moleculeCount" value="0" min="0" max="100">
+                    <input type="number" id="moleculeCount" value="0" min="0" max="200">
                 </div>
 
                 <div class="control-group">
@@ -98,12 +98,28 @@
                         data-en-on="Hide Atom Labels">
                         Bật nhãn nguyên tử
                     </button>
+                    
+                    <button id="helpBtn" class="ghost-btn"
+                        data-i18n="btnHelp"
+                        data-vi="Hướng dẫn sử dụng"
+                        data-en="User Guide">
+                        Hướng dẫn sử dụng
+                    </button>
                 </div>
             </div>
         </div>
 
         <div id="sidebar-overlay"></div>
         <div id="canvas-container"></div>
+    </div>
+
+    <div id="helpModal" class="modal-overlay-custom">
+        <div class="modal-content">
+            <button id="closeHelpBtn" class="close-modal-btn">✕</button>
+            <h2 data-i18n="helpTitle" data-vi="Hướng dẫn sử dụng" data-en="User Guide">Hướng dẫn sử dụng</h2>
+            <div class="modal-body" id="helpBody">
+                </div>
+        </div>
     </div>
 
     <script src="sketch.js"></script>
