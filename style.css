@@ -54,7 +54,13 @@ body {
     flex-grow: 1; position: relative; background-color: #000;
     overflow: hidden; touch-action: none;
 }
-canvas { display: block; outline: none; }
+canvas { 
+    display: block; 
+    outline: none; 
+    touch-action: none; /* Sửa lỗi mobile browser hijack thao tác vuốt/zoom */
+    width: 100%; 
+    height: 100%;
+}
 
 /* --- STOP BUTTON (FLOATING) --- */
 .floating-btn {
@@ -123,16 +129,14 @@ input[type=range]::-webkit-slider-runnable-track {
     width: 100%; height: 4px; cursor: pointer; background: #555; border-radius: 2px;
 }
 
-/* Updated: Removed text-transform: uppercase */
 button.toggle-btn {
     padding: 14px; background-color: var(--btn-color); color: white;
     border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
     transition: background 0.2s; font-size: 0.9em;
-    text-transform: none; /* Changed from uppercase to none */
+    text-transform: none; 
 }
 button.toggle-btn.active { background-color: #2a9d8f; }
 
-/* New: Ghost Button Style for Help */
 .ghost-btn {
     background: transparent;
     border: none;

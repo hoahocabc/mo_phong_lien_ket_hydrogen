@@ -182,20 +182,8 @@ function setupHelpModal() {
     const closeHelpBtn = document.getElementById('closeHelpBtn');
     const helpModal = document.getElementById('helpModal');
 
-    const setMouseOverTrue = () => { isMouseOverUI = true; };
-    const setMouseOverFalse = () => { isMouseOverUI = false; };
-    
-    helpModal.addEventListener('mouseenter', setMouseOverTrue);
-    helpModal.addEventListener('mouseleave', setMouseOverFalse);
-
-    function openModal() {
-        helpModal.classList.add('active');
-        isMouseOverUI = true; 
-    }
-    function closeModal() {
-        helpModal.classList.remove('active');
-        isMouseOverUI = false;
-    }
+    function openModal() { helpModal.classList.add('active'); }
+    function closeModal() { helpModal.classList.remove('active'); }
 
     if(helpBtn) helpBtn.addEventListener('click', openModal);
     if(closeHelpBtn) closeHelpBtn.addEventListener('click', closeModal);
@@ -205,8 +193,8 @@ function getHelpContent(lang) {
     if (lang === 'vi') {
         return `
             <ul>
-                <li><strong>Xoay camera:</strong> Bấm giữ chuột trái và kéo.</li>
-                <li><strong>Phóng to/nhỏ:</strong> Lăn chuột giữa.</li>
+                <li><strong>Xoay camera:</strong> Bấm giữ và kéo trên màn hình.</li>
+                <li><strong>Phóng to/nhỏ:</strong> Lăn chuột (PC) hoặc chụm 2 ngón tay (Điện thoại).</li>
                 <li><strong>Điều khiển:</strong> Sử dụng thanh menu bên trái để chọn chất, số lượng và tốc độ.</li>
                 <li><strong>Giới hạn:</strong> Tối đa 70 phân tử cho Ethanol (C₂H₅OH) và 200 cho các trường hợp khác.</li>
                 <li><strong>Stop/Resume:</strong> Dùng nút góc phải để dừng hoặc tiếp tục chuyển động.</li>
@@ -215,8 +203,8 @@ function getHelpContent(lang) {
     } else {
         return `
             <ul>
-                <li><strong>Rotate Camera:</strong> Left Click + Drag.</li>
-                <li><strong>Zoom:</strong> Mouse Scroll.</li>
+                <li><strong>Rotate Camera:</strong> Click/Touch and Drag.</li>
+                <li><strong>Zoom:</strong> Mouse Scroll or Pinch.</li>
                 <li><strong>Controls:</strong> Use the sidebar to change molecule type, count, and speed.</li>
                 <li><strong>Max Count:</strong> Up to 70 molecules for Ethanol (C₂H₅OH) and 200 for others.</li>
                 <li><strong>Stop/Resume:</strong> Use the floating button on the right.</li>
@@ -237,39 +225,45 @@ function updateMoleculeCountLabel(maxVal) {
 }
 
 function setupUI() {
+    // --- TỐI ƯU HÓA TƯƠNG TÁC PC & MOBILE (Chống kẹt Hover) ---
+    const checkUI = (target) => {
+        if (!target || !target.closest) return false;
+        return !!(
+            target.closest('#sidebar') || 
+            target.closest('.floating-btn') || 
+            target.closest('.modal-content') || 
+            target.closest('#mobile-menu-btn')
+        );
+    };
+
+    // Chuột PC
+    window.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'touch') {
+            isMouseOverUI = checkUI(e.target);
+        }
+    });
+
+    // Màn hình cảm ứng Mobile
+    window.addEventListener('touchstart', (e) => {
+        isMouseOverUI = checkUI(e.target);
+    }, {passive: true});
+
+    window.addEventListener('touchend', (e) => {
+        setTimeout(() => { 
+            // Giải phóng UI lock khi nhấc tay (cho phép canvas hoạt động bình thường)
+            if (e.touches.length === 0) isMouseOverUI = false; 
+        }, 150);
+    }, {passive: true});
+    // -----------------------------------------------------------
+
     const countInput = document.getElementById('moleculeCount');
     const labelBtn = document.getElementById('toggleLabelsBtn');
     const langSelect = document.getElementById('langSelect');
     const speedSlider = document.getElementById('speedSlider');
     const typeSelect = document.getElementById('moleculeType');
-    const helpBtn = document.getElementById('helpBtn'); 
     const stopBtn = document.getElementById('stopBtn');
-    const sidebar = document.getElementById('sidebar');
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 
-    const setMouseOverTrue = () => { isMouseOverUI = true; };
-    const setMouseOverFalse = () => { isMouseOverUI = false; };
-
-    if (sidebar) {
-        sidebar.addEventListener('mouseenter', setMouseOverTrue);
-        sidebar.addEventListener('mouseleave', setMouseOverFalse);
-        sidebar.addEventListener('touchstart', setMouseOverTrue, {passive: true});
-        sidebar.addEventListener('touchend', setMouseOverFalse);
-    }
-
-    if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('mouseenter', setMouseOverTrue);
-        mobileMenuBtn.addEventListener('mouseleave', setMouseOverFalse);
-    }
-
-    if (helpBtn) {
-        helpBtn.addEventListener('mouseenter', setMouseOverTrue);
-        helpBtn.addEventListener('mouseleave', setMouseOverFalse);
-    }
-    
     if (stopBtn) {
-        stopBtn.addEventListener('mouseenter', setMouseOverTrue);
-        stopBtn.addEventListener('mouseleave', setMouseOverFalse);
         stopBtn.addEventListener('click', () => {
             isPaused = !isPaused;
             updateStopButtonVisuals();
@@ -435,7 +429,7 @@ function draw() {
     let sidebar = document.getElementById('sidebar');
     let isSidebarActive = sidebar && sidebar.classList.contains('active');
     
-    // Nếu KHÔNG chạm vào UI: Xoay (Orbit)
+    // Xoay / Phóng to camera nếu không tương tác với UI
     if (!isSidebarActive && !isMouseOverUI) {
         orbitControl();
     }
@@ -466,7 +460,6 @@ function draw() {
 }
 
 // --- PHYSICS & BOND LOGIC ---
-
 function solveDetailedCollisions() {
     if (isPaused) return; 
 
