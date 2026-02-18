@@ -1,6 +1,7 @@
 let molecules = [];
 let boxSize = 500; 
 let showLabels = false;
+let isPaused = false; 
 
 // UI & Settings
 let numMolecules = 0;
@@ -9,7 +10,7 @@ let currentMoleculeType = 'H2O';
 let bondThickness = 1; 
 let maxSpeed = 1.5;
 let myFont; 
-let isMouseOverUI = false; // Biến mới: Kiểm tra chuột có đang ở trên UI không
+let isMouseOverUI = false;
 
 // Sidebar setup
 const DESKTOP_SIDEBAR_WIDTH = 280; 
@@ -178,7 +179,9 @@ function setupUI() {
     const speedSlider = document.getElementById('speedSlider');
     const typeSelect = document.getElementById('moleculeType');
     
-    // MỚI: Xử lý sự kiện chuột trên Sidebar để tắt orbitControl
+    const stopBtn = document.getElementById('stopBtn');
+
+    // Xử lý sự kiện chuột trên Sidebar để tắt orbitControl
     const sidebar = document.getElementById('sidebar');
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 
@@ -188,7 +191,6 @@ function setupUI() {
     if (sidebar) {
         sidebar.addEventListener('mouseenter', setMouseOverTrue);
         sidebar.addEventListener('mouseleave', setMouseOverFalse);
-        // Hỗ trợ touch trên mobile để chắc chắn không xoay khi chạm sidebar
         sidebar.addEventListener('touchstart', setMouseOverTrue, {passive: true});
         sidebar.addEventListener('touchend', setMouseOverFalse);
     }
@@ -197,12 +199,24 @@ function setupUI() {
         mobileMenuBtn.addEventListener('mouseenter', setMouseOverTrue);
         mobileMenuBtn.addEventListener('mouseleave', setMouseOverFalse);
     }
+    
+    // Sự kiện cho nút Stop
+    if (stopBtn) {
+        stopBtn.addEventListener('mouseenter', setMouseOverTrue);
+        stopBtn.addEventListener('mouseleave', setMouseOverFalse);
+        stopBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            updateStopButtonVisuals();
+        });
+    }
 
     updateInterfaceLanguage();
+    updateStopButtonVisuals(); // Khởi tạo nút Stop
 
     langSelect.addEventListener('change', (e) => {
         currentLang = e.target.value;
         updateInterfaceLanguage();
+        // Không cần updateStopButtonVisuals() ở đây vì nút Stop luôn là tiếng Anh
     });
 
     typeSelect.addEventListener('change', (e) => {
@@ -229,6 +243,24 @@ function setupUI() {
         if(showLabels) labelBtn.classList.add('active');
         else labelBtn.classList.remove('active');
     });
+}
+
+// CẬP NHẬT: Hàm hiển thị nút Stop (Luôn tiếng Anh, không viết hoa toàn bộ)
+function updateStopButtonVisuals() {
+    const btn = document.getElementById('stopBtn');
+    if (!btn) return;
+
+    if (isPaused) {
+        btn.classList.add('paused');
+        // Màu xanh, chữ Resume
+        btn.innerText = 'Resume';
+        btn.style.backgroundColor = '#2a9d8f'; 
+    } else {
+        btn.classList.remove('paused');
+        // Màu đỏ, chữ Stop
+        btn.innerText = 'Stop';
+        btn.style.backgroundColor = '#ef233c';
+    }
 }
 
 function updateMoleculeCount(newCount) {
@@ -323,8 +355,6 @@ function draw() {
     let sidebar = document.getElementById('sidebar');
     let isSidebarActive = sidebar && sidebar.classList.contains('active');
     
-    // CẬP NHẬT: Chỉ bật Orbit Control khi Sidebar trên mobile tắt
-    // VÀ chuột không nằm trên UI (cho desktop)
     if (!isSidebarActive && !isMouseOverUI) {
         orbitControl();
     }
@@ -344,6 +374,8 @@ function draw() {
         m.checkEdges(); 
     }
     
+    // Nếu đang Pause, vẫn tính toán va chạm và liên kết (nhưng không áp dụng lực di chuyển)
+    // để giữ hình ảnh tĩnh nhưng đúng vật lý
     solveDetailedCollisions();
     processAndDrawBonds();
 
@@ -356,6 +388,8 @@ function draw() {
 // --- PHYSICS & BOND LOGIC ---
 
 function solveDetailedCollisions() {
+    if (isPaused) return; // Dừng check va chạm khi pause để ổn định hình ảnh
+
     let iterations = 5; 
     
     for (let k = 0; k < iterations; k++) { 
@@ -511,6 +545,9 @@ function applyBondPhysicsAndVisuals(bond) {
     
     drawFineDashedLineSurface(bond.posH, bond.posCenter, alpha, [255, 255, 0]);
 
+    // Nếu đang Pause, không áp dụng lực hút
+    if (isPaused) return;
+
     let force = p5.Vector.sub(bond.posCenter, bond.posH).normalize();
     let strength = BOND_STRENGTH * map(d, 0, H_BOND_DISTANCE, 0.5, 1.5);
     force.mult(strength);
@@ -654,21 +691,27 @@ class Molecule {
         this.pos = createVector(random(-limit, limit), random(-limit, limit), random(-limit, limit));
     }
 
-    applyForce(force) { this.acc.add(force); }
+    applyForce(force) { 
+        if(!isPaused) this.acc.add(force); 
+    }
 
     update() {
-        this.vel.add(this.acc);
-        if (maxSpeed <= 0.01) this.vel.mult(0);
-        else {
-            if (this.vel.mag() === 0) this.vel = p5.Vector.random3D();
-            this.vel.normalize().mult(maxSpeed);
-            this.pos.add(this.vel);
-            this.rot.add(p5.Vector.mult(this.baseRotVel, maxSpeed / 1.5));
+        if (!isPaused) {
+            this.vel.add(this.acc);
+            if (maxSpeed <= 0.01) this.vel.mult(0);
+            else {
+                if (this.vel.mag() === 0) this.vel = p5.Vector.random3D();
+                this.vel.normalize().mult(maxSpeed);
+                this.pos.add(this.vel);
+                this.rot.add(p5.Vector.mult(this.baseRotVel, maxSpeed / 1.5));
+            }
+            this.acc.mult(0); 
         }
-        this.acc.mult(0); 
     }
 
     checkEdges() {
+        if (isPaused) return;
+
         let atomSpheres = this.getAtomSpheres();
         let bouncedX = false, bouncedY = false, bouncedZ = false;
         let damping = 0.8;
