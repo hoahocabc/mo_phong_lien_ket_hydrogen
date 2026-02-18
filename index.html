@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mô Phỏng Liên Kết Hydrogen - Hóa Học ABC</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body>
+    <button id="mobile-menu-btn">☰</button>
+
+    <div id="main-container">
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <button id="close-sidebar-btn">✕</button>
+                <h1 id="appTitle" 
+                    data-i18n="title"
+                    data-vi="MÔ PHỎNG LK HYDROGEN"
+                    data-en="H-BOND SIMULATION">
+                    MÔ PHỎNG LK HYDROGEN
+                </h1>
+                <h2 class="brand">HÓA HỌC ABC</h2>
+            </div>
+            
+            <div class="control-panel">
+                <div class="control-group">
+                    <label for="langSelect" 
+                        data-i18n="lblLang"
+                        data-vi="Ngôn ngữ / Language"
+                        data-en="Language / Ngôn ngữ">
+                        Ngôn ngữ / Language
+                    </label>
+                    <select id="langSelect">
+                        <option value="vi" selected>Tiếng Việt</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="moleculeType" id="lblType"
+                        data-i18n="lblType"
+                        data-vi="Loại phân tử / Hỗn hợp"
+                        data-en="Molecule Type / Mixture">
+                        Loại phân tử / Hỗn hợp
+                    </label>
+                    <select id="moleculeType">
+                        <option value="H2O" selected 
+                            data-vi="Nước (H₂O)" 
+                            data-en="Water (H₂O)">Nước (H₂O)</option>
+                        
+                        <option value="NH3" 
+                            data-vi="Amoniac (NH₃)" 
+                            data-en="Ammonia (NH₃)">Amoniac (NH₃)</option>
+                        
+                        <option value="HF" 
+                            data-vi="Hydro Florua (HF)" 
+                            data-en="Hydrogen Fluoride (HF)">Hydro Florua (HF)</option>
+                        
+                        <option value="C2H5OH" 
+                            data-vi="Ethanol (C₂H₅OH)" 
+                            data-en="Ethanol (C₂H₅OH)">Ethanol (C₂H₅OH)</option>
+                        
+                        <option value="MIX_H2O_C2H5OH" 
+                            data-vi="Hỗn hợp: Nước + Ethanol" 
+                            data-en="Mixture: Water + Ethanol">Hỗn hợp: Nước + Ethanol</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="moleculeCount" id="lblCount"
+                        data-i18n="lblCount"
+                        data-vi="Số phân tử (0-100)"
+                        data-en="Molecule Count (0-100)">
+                        Số phân tử (0-100)
+                    </label>
+                    <input type="number" id="moleculeCount" value="0" min="0" max="100">
+                </div>
+
+                <div class="control-group">
+                    <label for="speedSlider" id="lblSpeed"
+                        data-i18n="lblSpeed"
+                        data-vi="Tốc độ chuyển động"
+                        data-en="Motion Speed">
+                        Tốc độ chuyển động
+                    </label>
+                    <input type="range" id="speedSlider" min="0" max="5" step="0.1" value="1.5">
+                </div>
+
+                <div class="control-group">
+                    <button id="toggleLabelsBtn" class="toggle-btn"
+                        data-i18n="btnToggleLabels"
+                        data-vi-off="Bật nhãn nguyên tử"
+                        data-vi-on="Tắt nhãn nguyên tử"
+                        data-en-off="Show Atom Labels"
+                        data-en-on="Hide Atom Labels">
+                        Bật nhãn nguyên tử
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="sidebar-overlay"></div>
+        <div id="canvas-container"></div>
+    </div>
+
+    <script src="sketch.js"></script>
+</body>
+</html>
