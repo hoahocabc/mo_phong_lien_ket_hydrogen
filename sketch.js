@@ -11,6 +11,7 @@ let bondThickness = 1;
 let maxSpeed = 1.5;
 let myFont; 
 let isMouseOverUI = false;
+let lastUIScrollTime = 0; // Biến lưu thời điểm cuộn UI cuối cùng để chặn quán tính (momentum)
 
 // Sidebar setup
 const DESKTOP_SIDEBAR_WIDTH = 280; 
@@ -225,7 +226,6 @@ function updateMoleculeCountLabel(maxVal) {
 }
 
 function setupUI() {
-    // --- TỐI ƯU HÓA TƯƠNG TÁC PC & MOBILE (Chống kẹt Hover) ---
     const checkUI = (target) => {
         if (!target || !target.closest) return false;
         return !!(
@@ -236,25 +236,30 @@ function setupUI() {
         );
     };
 
-    // Chuột PC
+    const stopProp = (e) => e.stopPropagation();
+    ['sidebar', 'helpModal', 'stopBtn', 'mobile-menu-btn', 'sidebar-overlay'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('wheel', stopProp, { passive: true });
+            el.addEventListener('touchmove', stopProp, { passive: true });
+        }
+    });
+
     window.addEventListener('pointermove', (e) => {
         if (e.pointerType !== 'touch') {
             isMouseOverUI = checkUI(e.target);
         }
     });
 
-    // Màn hình cảm ứng Mobile
     window.addEventListener('touchstart', (e) => {
         isMouseOverUI = checkUI(e.target);
     }, {passive: true});
 
     window.addEventListener('touchend', (e) => {
         setTimeout(() => { 
-            // Giải phóng UI lock khi nhấc tay (cho phép canvas hoạt động bình thường)
             if (e.touches.length === 0) isMouseOverUI = false; 
         }, 150);
     }, {passive: true});
-    // -----------------------------------------------------------
 
     const countInput = document.getElementById('moleculeCount');
     const labelBtn = document.getElementById('toggleLabelsBtn');
@@ -423,14 +428,39 @@ function adjustCamera() {
     camera(0, 0, camZ, 0, 0, 0, 0, 1, 0);
 }
 
+// Hàm dọn dẹp biến nội bộ của p5
+function clearP5ScrollDelta() {
+    if (typeof _renderer !== 'undefined' && _renderer && _renderer._pInst) {
+        _renderer._pInst._mouseWheelDeltaY = 0;
+    }
+}
+
+// Bắt sự kiện cuộn chuột ở cấp cao nhất để xử lý quán tính
+function mouseWheel(event) {
+    if (isMouseOverUI) {
+        lastUIScrollTime = millis();
+        clearP5ScrollDelta();
+        return true; // Cho trình duyệt cuộn Sidebar bình thường
+    }
+    
+    // Nếu vừa mới rời khỏi UI trong vòng 500ms, ta chặn event zoom 
+    // để loại bỏ hoàn toàn các vòng xoay quán tính dư thừa của trackpad
+    if (millis() - lastUIScrollTime < 500) {
+        clearP5ScrollDelta();
+        return false; 
+    }
+}
+
 function draw() {
     background(0); 
     
     let sidebar = document.getElementById('sidebar');
     let isSidebarActive = sidebar && sidebar.classList.contains('active');
     
-    // Xoay / Phóng to camera nếu không tương tác với UI
-    if (!isSidebarActive && !isMouseOverUI) {
+    // Khi đang dùng UI, cấm hoàn toàn p5 điều khiển và xoá sạch bộ đệm
+    if (isSidebarActive || isMouseOverUI) {
+        clearP5ScrollDelta();
+    } else {
         orbitControl();
     }
 
@@ -562,11 +592,11 @@ function checkBondPotential(molH, molAcceptor, posH, posAcceptorCenter, idxH, id
     let d = posH.dist(posAcceptorCenter);
     if (d > H_BOND_DISTANCE) return null;
 
-    let posDonorCenter = molH.pos;
-    let dirCovalent = p5.Vector.sub(posH, posDonorCenter).normalize();
-    let dirHBond = p5.Vector.sub(posAcceptorCenter, posH).normalize();
+    let posDonorCenter = molH.pos; // X
+    let dirCovalent = p5.Vector.sub(posH, posDonorCenter).normalize(); // Vector X -> H
+    let dirHBond = p5.Vector.sub(posAcceptorCenter, posH).normalize(); // Vector H -> Y
 
-    if (dirCovalent.dot(dirHBond) < 0.6) return null; 
+    if (dirCovalent.dot(dirHBond) < 0.85) return null; 
 
     let dirAcceptorToH = p5.Vector.mult(dirHBond, -1); 
     let lpDirs = molAcceptor.getGlobalLPDirections();
@@ -791,7 +821,6 @@ class Molecule {
         for (let atom of atomSpheres) {
             let r = atom.r;
             
-            // X Axis
             if (atom.pos.x > boxSize - r) {
                 let overshoot = atom.pos.x - (boxSize - r);
                 this.pos.x -= overshoot; 
@@ -802,7 +831,6 @@ class Molecule {
                 if (!bouncedX) { this.vel.x *= -1 * damping; bouncedX = true; }
             }
             
-            // Y Axis
             if (atom.pos.y > boxSize - r) {
                 let overshoot = atom.pos.y - (boxSize - r);
                 this.pos.y -= overshoot;
@@ -813,7 +841,6 @@ class Molecule {
                 if (!bouncedY) { this.vel.y *= -1 * damping; bouncedY = true; }
             }
             
-            // Z Axis
             if (atom.pos.z > boxSize - r) {
                 let overshoot = atom.pos.z - (boxSize - r);
                 this.pos.z -= overshoot;
@@ -863,7 +890,6 @@ class Molecule {
         translate(this.pos.x, this.pos.y, this.pos.z);
         rotateX(this.rot.x); rotateY(this.rot.y); rotateZ(this.rot.z);
         
-        // 1. Vẽ H và liên kết H-O (tại Center)
         for (let hLocal of this.hLocalPositions) {
             this.drawStructureBond(
                 createVector(0,0,0), hLocal, 
@@ -878,7 +904,6 @@ class Molecule {
             pop();
         }
 
-        // 2. Vẽ Extra Atoms
         if (this.extraAtomsLocal.length > 0) {
             for (let i = 0; i < this.extraAtomsLocal.length; i++) {
                 let localPos = this.extraAtomsLocal[i];
@@ -909,7 +934,6 @@ class Molecule {
             }
         }
         
-        // 3. Vẽ Atom trung tâm
         noStroke();
         let c = this.config.centerColor;
         ambientMaterial(c[0], c[1], c[2]);
@@ -917,7 +941,6 @@ class Molecule {
         sphere(this.config.centerRadius, 48, 48);
         pop();
 
-        // 4. Vẽ Nhãn (Labels)
         if (showLabels) {
             draw3DLabel(this.config.centerAtom, this.pos.x, this.pos.y, this.pos.z, 24, this.config.centerRadius);
             

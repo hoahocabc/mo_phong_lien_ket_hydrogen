@@ -19,7 +19,6 @@ body {
     display: flex; width: 100%; height: 100%; position: relative;
 }
 
-/* --- SIDEBAR --- */
 #sidebar {
     width: var(--sidebar-width);
     background: linear-gradient(135deg, var(--sidebar-bg), #141418);
@@ -49,7 +48,6 @@ body {
     letter-spacing: 1px; 
 }
 
-/* --- CANVAS --- */
 #canvas-container {
     flex-grow: 1; position: relative; background-color: #000;
     overflow: hidden; touch-action: none;
@@ -57,12 +55,11 @@ body {
 canvas { 
     display: block; 
     outline: none; 
-    touch-action: none; /* Sửa lỗi mobile browser hijack thao tác vuốt/zoom */
+    touch-action: none;
     width: 100%; 
     height: 100%;
 }
 
-/* --- STOP BUTTON (FLOATING) --- */
 .floating-btn {
     position: absolute;
     top: 20px;
@@ -92,7 +89,6 @@ canvas {
     transform: translateY(1px);
 }
 
-/* --- MOBILE CONTROLS --- */
 #mobile-menu-btn {
     display: none; position: fixed; top: 15px; left: 15px; z-index: 300;
     background-color: rgba(30, 30, 36, 0.8); color: #fff;
@@ -108,7 +104,6 @@ canvas {
     background: none; border: none; color: #aaa; font-size: 24px; cursor: pointer; padding: 5px;
 }
 
-/* --- FORM ELEMENTS --- */
 .control-panel { display: flex; flex-direction: column; gap: 18px; }
 .control-group { display: flex; flex-direction: column; gap: 8px; }
 label { font-size: 0.95em; font-weight: 500; color: #ccc; }
@@ -158,7 +153,6 @@ button.toggle-btn.active { background-color: #2a9d8f; }
     opacity: 0; transition: opacity 0.3s;
 }
 
-/* --- MODAL POPUP STYLES --- */
 .modal-overlay-custom {
     display: none;
     position: fixed;
@@ -219,7 +213,6 @@ button.toggle-btn.active { background-color: #2a9d8f; }
     color: #ffd166;
 }
 
-/* --- RESPONSIVE MEDIA QUERIES --- */
 @media (max-width: 768px) {
     #mobile-menu-btn { display: block; }
     
