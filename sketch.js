@@ -466,8 +466,12 @@ function draw() {
 
     push();
 
-    noFill(); stroke(80); strokeWeight(1);
+    // --- SỬA ĐỔI: Tăng độ dày và đổi màu cho khung hộp ---
+    noFill(); 
+    stroke(255); // Màu trắng
+    strokeWeight(4); // Độ dày nét là 4 (trước đó là 1)
     box(boxSize * 2);
+    // -----------------------------------------------------
 
     ambientLight(100); 
     directionalLight(150, 150, 150, 0.5, 0.5, -1);
