@@ -1,6 +1,6 @@
 let molecules = [];
 let boxSize = 500; 
-let showLabels = false;
+let showLabels = true; // Hiển thị nhãn ngay từ đầu
 let isPaused = false; 
 
 // UI & Settings
@@ -278,6 +278,9 @@ function setupUI() {
     updateInterfaceLanguage();
     updateStopButtonVisuals(); 
 
+    if(showLabels) labelBtn.classList.add('active');
+    else labelBtn.classList.remove('active');
+
     langSelect.addEventListener('change', (e) => {
         currentLang = e.target.value;
         updateInterfaceLanguage();
@@ -355,6 +358,8 @@ function createSafeMolecule(id) {
     let typeToCreate = currentMoleculeType;
     if (currentMoleculeType === 'MIX_H2O_C2H5OH') {
         typeToCreate = random() < 0.5 ? 'H2O' : 'C2H5OH';
+    } else if (currentMoleculeType === 'MIX_HF_H2O') {
+        typeToCreate = random() < 0.5 ? 'HF' : 'H2O';
     }
 
     let m = new Molecule(id, typeToCreate);
